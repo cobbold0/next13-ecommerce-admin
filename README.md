@@ -28,6 +28,7 @@ Key Features:
 - Stripe checkout
 - Stripe webhooks
 - MySQL + Prisma + PlanetScale
+- switching to supabase
 
 ### Prerequisites
 
