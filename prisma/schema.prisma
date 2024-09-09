@@ -10,26 +10,18 @@ datasource db {
 }
 
 model Store {
-  id           String      @id @default(uuid())
-  name         String
-  userId       String
-  billboards   Billboard[] @relation("StoreToBillboard")
-  categories   Category[]  @relation("StoreToCategory")
-  products     Product[]   @relation("StoreToProduct")
-  sizes        Size[]      @relation("StoreToSize")
-  colors       Color[]     @relation("StoreToColor")
-  orders       Order[]     @relation("StoreToOrder")
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-}
-
-model StoreFront {
-  id        String   @id @default(uuid())
-  name      String
-  endpoint  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  storeId String
+  id            String      @id @default(uuid())
+  name          String
+  userId        String
+  storeFrontUrl String      @default("")
+  billboards    Billboard[] @relation("StoreToBillboard")
+  categories    Category[]  @relation("StoreToCategory")
+  products      Product[]   @relation("StoreToProduct")
+  sizes         Size[]      @relation("StoreToSize")
+  colors        Color[]     @relation("StoreToColor")
+  orders        Order[]     @relation("StoreToOrder")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Billboard {
