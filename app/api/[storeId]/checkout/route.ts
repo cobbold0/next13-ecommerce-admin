@@ -1,7 +1,4 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
-
-import { stripe } from "@/lib/stripe";
 import prismadb from "@/lib/prismadb";
 
 const corsHeaders = {
@@ -18,7 +15,7 @@ export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
 ) {
-  const { productIds } = await req.json();
+  const { productIds, customerEmail } = await req.json();
 
   if (!productIds || productIds.length === 0) {
     return new NextResponse("Product ids are required", { status: 400 });
@@ -32,20 +29,11 @@ export async function POST(
     }
   });
 
-  const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-
-  products.forEach((product) => {
-    line_items.push({
-      quantity: 1,
-      price_data: {
-        currency: 'USD',
-        product_data: {
-          name: product.name,
-        },
-        unit_amount: product.price.toNumber() * 100
-      }
-    });
-  });
+  const line_items = products.map(product => ({
+    name: product.name,
+    amount: product.price.toNumber() * 100,
+    quantity: 1,
+  }));
 
   const order = await prismadb.order.create({
     data: {
@@ -63,21 +51,26 @@ export async function POST(
     }
   });
 
-  const session = await stripe.checkout.sessions.create({
-    line_items,
-    mode: 'payment',
-    billing_address_collection: 'required',
-    phone_number_collection: {
-      enabled: true,
+  // Paystack API request to create a payment link
+  const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      'Content-Type': 'application/json',
     },
-    success_url: `${process.env.FRONTEND_STORE_URL}/cart?success=1`,
-    cancel_url: `${process.env.FRONTEND_STORE_URL}/cart?canceled=1`,
-    metadata: {
-      orderId: order.id
-    },
+    body: JSON.stringify({
+      email: customerEmail, // Replace with customer's email
+      amount: line_items.reduce((total, item) => total + item.amount * item.quantity, 0),
+      callback_url: `${process.env.FRONTEND_STORE_URL}/payment/callback`,
+      metadata: {
+        orderId: order.id
+      }
+    })
   });
 
-  return NextResponse.json({ url: session.url }, {
+  const paystackData = await paystackResponse.json();
+
+  return NextResponse.json({ url: paystackData.data.authorization_url }, {
     headers: corsHeaders
   });
 };
