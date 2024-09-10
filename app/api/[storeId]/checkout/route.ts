@@ -90,7 +90,7 @@ export async function POST(
           (total, item) => total + item.amount * item.quantity,
           0
         ),
-        callback_url: `${storeFrontUrl.origin}/${store.id}/cart`,
+        callback_url: `${storeFrontUrl.origin}/cart`,
         metadata: {
           orderId: order.id,
         },
