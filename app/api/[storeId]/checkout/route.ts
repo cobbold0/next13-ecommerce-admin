@@ -15,7 +15,8 @@ export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
 ) {
-  const { productIds, customerEmail } = await req.json();
+  const { productIds, customerEmail, customerAddress, customerContact } =
+    await req.json();
 
   if (!productIds || productIds.length === 0) {
     return new NextResponse("Product ids are required", { status: 400 });
@@ -85,7 +86,7 @@ export async function POST(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: customerEmail, // Replace with customer's email
+        email: customerEmail,
         amount: line_items.reduce(
           (total, item) => total + item.amount * item.quantity,
           0
@@ -93,6 +94,17 @@ export async function POST(
         callback_url: `${storeFrontUrl.origin}/cart`,
         metadata: {
           orderId: order.id,
+          address: {
+            line: customerAddress?.line1 || "",
+            city: customerAddress?.city || "",
+            digitalAddress: customerAddress?.digitalAddress || "",
+            country: customerAddress?.country || "",
+          },
+          contact: {
+            phoneNumber1: customerContact?.phoneNumber1 || "",
+            phoneNumber2: customerContact?.phoneNumber2 || "",
+            email: customerContact?.email || "",
+          },
         },
       }),
     }
