@@ -44,10 +44,12 @@ export async function POST(req: Request) {
       case "charge.success": {
         const session = event.data;
         const {
-          address: { line, city, digitalAddress, country },
-          contact: { phoneNumber1, phoneNumber2, email },
-        } = session?.customer?.metadata;
+          address: { line = "", city = "", digitalAddress = "", country = "" } = {},
+          contact: { phoneNumber1 = "", phoneNumber2 = "", email = "" } = {},
+        } = session?.customer?.metadata || {};
         // const address = session?.customer?.metadata?.address;
+        console.log("[WEBHOOK/ORDER: SUCCESS - SESSION]", session);
+        
 
         const addressComponents = [
           line || "",
