@@ -44,8 +44,8 @@ export async function POST(req: Request) {
       case "charge.success": {
         const session = event.data;
         const {
-          firstName,
-          lastName,
+          firstName = "",
+          lastName = "",
           address: {
             line = "",
             city = "",
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
           line || "",
           city || "",
           digitalAddress || "",
-          country || "Ghana",
+          country || "",
         ];
         const addressString = addressComponents
           .filter((value) => value != "")

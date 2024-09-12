@@ -23,9 +23,6 @@ export async function POST(
     customerContact: { phoneNumber1, phoneNumber2, email },
   } = await req.json();
 
-  console.log("checkout request", phoneNumber1);
-  
-
   if (!productIds || productIds.length === 0) {
     return new NextResponse("Product ids are required", { status: 400 });
   }
@@ -72,7 +69,7 @@ export async function POST(
     line || "",
     city || "",
     digitalAddress || "",
-    country || "Ghana",
+    country || "",
   ];
   const addressString = addressComponents
     .filter((value) => value != "")
@@ -114,8 +111,8 @@ export async function POST(
         callback_url: `${storeFrontUrl.origin}/cart`,
         metadata: {
           orderId: order.id,
-          firstName,
-          lastName,
+          firstName: firstName || "",
+          lastName: lastName || "",
           address: {
             line: line || "",
             city: city || "",
