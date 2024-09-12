@@ -79,17 +79,19 @@ export async function POST(req: Request) {
 
         // Upsert customer details
         const customerData = {
-          firstName: session.customer.first_name,
-          lastName: session.customer.last_name,
-          email: email,
-          phone: phoneNumbersString,
-          storeId: order.storeId,
+          firstName: session.customer?.first_name || "",
+          lastName: session.customer?.last_name || "",
+          email: email || "",
+          phone: phoneNumbersString || "",
         };
 
         const upsertCustomer = await prismadb.customer.upsert({
           where: { email: customerData.email },
           update: customerData,
-          create: customerData,
+          create: {
+            ...customerData,
+            store: { connect: {id: order.storeId} }
+          },
         });
 
         // Save payment details
