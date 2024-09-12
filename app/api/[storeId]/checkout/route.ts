@@ -17,6 +17,8 @@ export async function POST(
 ) {
   const {
     productIds,
+    firstName,
+    lastName,
     customerAddress: { line, city, digitalAddress, country },
     customerContact: { phoneNumber1, phoneNumber2, email },
   } = await req.json();
@@ -66,10 +68,22 @@ export async function POST(
     quantity: 1,
   }));
 
+  const addressComponents = [
+    line || "",
+    city || "",
+    digitalAddress || "",
+    country || "",
+  ];
+  const addressString = addressComponents
+    .filter((value) => value != "")
+    .join(", ");
+
   const order = await prismadb.order.create({
     data: {
       storeId: params.storeId,
       isPaid: false,
+      phone: phoneNumber1 || phoneNumber2,
+      address: addressString || "",
       orderItems: {
         create: productIds.map((productId: string) => ({
           product: {
@@ -100,6 +114,8 @@ export async function POST(
         callback_url: `${storeFrontUrl.origin}/cart`,
         metadata: {
           orderId: order.id,
+          firstName,
+          lastName,
           address: {
             line: line || "",
             city: city || "",

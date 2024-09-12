@@ -44,9 +44,10 @@ export async function POST(req: Request) {
       case "charge.success": {
         const session = event.data;
         const {
+          firstName, lastName,
           address: { line = "", city = "", digitalAddress = "", country = "" } = {},
           contact: { phoneNumber1 = "", phoneNumber2 = "", email = "" } = {},
-        } = session?.customer?.metadata || {};
+        } = session?.metadata || {};
         // const address = session?.customer?.metadata?.address;
         console.log("[WEBHOOK/ORDER: SUCCESS - SESSION]", session);
         
@@ -79,8 +80,8 @@ export async function POST(req: Request) {
 
         // Upsert customer details
         const customerData = {
-          firstName: session.customer?.first_name || "",
-          lastName: session.customer?.last_name || "",
+          firstName: firstName|| "",
+          lastName: lastName || "",
           email: email || "",
           phone: phoneNumbersString || "",
         };
