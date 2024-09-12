@@ -9,64 +9,111 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Store {
-  id            String      @id @default(uuid())
-  name          String
-  userId        String
-  storeFrontUrl String      @default("")
-  billboards    Billboard[] @relation("StoreToBillboard")
-  categories    Category[]  @relation("StoreToCategory")
-  products      Product[]   @relation("StoreToProduct")
-  sizes         Size[]      @relation("StoreToSize")
-  colors        Color[]     @relation("StoreToColor")
-  orders        Order[]     @relation("StoreToOrder")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+model PaymentDetail {
+  id                String   @id @default(uuid())
+  reference         String
+  amount            Int // Store amount in the smallest currency unit (e.g., kobo)
+  status            String
+  paidAt            DateTime
+  currency          String
+  gatewayResponse   String?
+  fees              Int?
+  authorizationCode String?
+  cardType          String?
+  bank              String?
+  accountName       String?
+  customerId        String
+  // A PaymentDetail belongs to one Customer
+  customer          Customer @relation(fields: [customerId], references: [id])
+  orderId           String   @unique
+  // A PaymentDetail belongs to one Order
+  order             Order    @relation(fields: [orderId], references: [id])
+
+  @@index([customerId])
+  @@index([orderId])
 }
 
-model Billboard {
-  id         String     @id @default(uuid())
+model Customer {
+  id        String  @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String  @unique
+  phone     String?
+  store     Store   @relation("StoreToCustomer", fields: [storeId], references: [id])
+  // A Customer can have multiple Orders
+  orders    Order[]
+  // A Customer can have multiple PaymentDetails
+  payments  PaymentDetail[]
+  OrderItem OrderItem[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  storeId   String
+  // A Customer belongs to one Store
+
+  @@index([email])
+  @@index([storeId])
+}
+
+// Intermediary table to represent many-to-many between Orders and Products
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  // An OrderItem belongs to one Order
+  order      Order    @relation(fields: [orderId], references: [id])
+  productId  String
+  // An OrderItem represents one Product
+  product    Product  @relation(fields: [productId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([customerId])
+}
+
+model Order {
+  id         String         @id @default(uuid())
   storeId    String
-  store      Store      @relation("StoreToBillboard", fields: [storeId], references: [id])
-  label      String
-  imageUrl   String
-  categories Category[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  // An Order belongs to one Store
+  store      Store          @relation("StoreToOrder", fields: [storeId], references: [id])
+  // An Order can have multiple OrderItems (many-to-many with Products)
+  orderItems OrderItem[] // Relation to OrderItem model
+  isPaid     Boolean        @default(false)
+  phone      String         @default("")
+  address    String         @default("")
+  // An Order can have one PaymentDetail
+  payment    PaymentDetail?
+  customerId String?
+  // An Order can belong to one Customer
+  Customer   Customer?      @relation(fields: [customerId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   @@index([storeId])
-}
-
-model Category {
-  id          String    @id @default(uuid())
-  storeId     String // Foreign Key to Store
-  store       Store     @relation("StoreToCategory", fields: [storeId], references: [id])
-  billboardId String // Foreign Key to Billboard
-  billboard   Billboard @relation(fields: [billboardId], references: [id])
-  name        String
-  products    Product[] @relation("CategoryToProduct")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([storeId])
-  @@index([billboardId])
+  @@index([customerId])
 }
 
 model Product {
   id         String      @id @default(uuid())
-  storeId    String // Foreign Key to Store
+  storeId    String
+  // A Product belongs to one Store
   store      Store       @relation("StoreToProduct", fields: [storeId], references: [id])
-  categoryId String // Foreign Key to Category
+  categoryId String
+  // A Product belongs to one Category
   category   Category    @relation("CategoryToProduct", fields: [categoryId], references: [id])
   name       String
   price      Decimal
   isFeatured Boolean     @default(false)
   isArchived Boolean     @default(false)
-  sizeId     String // Foreign Key to Size
+  sizeId     String
+  // A Product belongs to one Size
   size       Size        @relation(fields: [sizeId], references: [id])
-  colorId    String // Foreign Key to Color
+  colorId    String
+  // A Product belongs to one Color
   color      Color       @relation(fields: [colorId], references: [id])
+  // A Product can have multiple Images
   images     Image[] // Relation to Image model
+  // A Product can have multiple OrderItems (many-to-many between Orders and Products)
   orderItems OrderItem[] // Relation to Order model
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -77,38 +124,26 @@ model Product {
   @@index([colorId])
 }
 
-model Order {
-  id         String      @id @default(uuid())
-  storeId    String // Foreign Key to Store
-  store      Store       @relation("StoreToOrder", fields: [storeId], references: [id])
-  orderItems OrderItem[] // Relation to OrderItem model
-  isPaid     Boolean     @default(false)
-  phone      String      @default("")
-  address    String      @default("")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+model Image {
+  id        String   @id @default(uuid())
+  productId String
+  // An Image belongs to one Product
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String // URL of the image
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([storeId])
-}
-
-// Intermediary for a many-to-many relationship
-model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String // Foreign Key to Order
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String // Foreign Key to Product
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@index([orderId])
   @@index([productId])
 }
 
 model Size {
   id        String    @id @default(uuid())
-  storeId   String // Foreign Key to Store
+  storeId   String
+  // A Size belongs to one Store
   store     Store     @relation("StoreToSize", fields: [storeId], references: [id])
   name      String
   value     String
+  // A Size can have multiple Products
   products  Product[] // Relation to Product model
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -118,10 +153,12 @@ model Size {
 
 model Color {
   id        String    @id @default(uuid())
-  storeId   String // Foreign Key to Store
+  storeId   String
+  // A Color belongs to one Store
   store     Store     @relation("StoreToColor", fields: [storeId], references: [id])
   name      String
   value     String
+  // A Color can have multiple Products
   products  Product[] // Relation to Product model
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -129,13 +166,58 @@ model Color {
   @@index([storeId])
 }
 
-model Image {
-  id        String   @id @default(uuid())
-  productId String // Foreign Key to Product
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  url       String // URL of the image
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Billboard {
+  id         String     @id @default(uuid())
+  storeId    String
+  // A Billboard belongs to one Store
+  store      Store      @relation("StoreToBillboard", fields: [storeId], references: [id])
+  label      String
+  imageUrl   String
+  // A Billboard can have multiple Categories
+  categories Category[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
-  @@index([productId])
+  @@index([storeId])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  storeId     String
+  // A Category belongs to one Store
+  store       Store     @relation("StoreToCategory", fields: [storeId], references: [id])
+  billboardId String
+  // A Category is displayed on one Billboard
+  billboard   Billboard @relation(fields: [billboardId], references: [id])
+  name        String
+  // A Category can have multiple Products
+  products    Product[] @relation("CategoryToProduct")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([storeId])
+  @@index([billboardId])
+}
+
+model Store {
+  id            String      @id @default(uuid())
+  name          String
+  userId        String
+  storeFrontUrl String      @default("")
+  // A Store can have multiple Billboards
+  billboards    Billboard[] @relation("StoreToBillboard")
+  // A Store can have multiple Categories
+  categories    Category[]  @relation("StoreToCategory")
+  // A Store can have multiple Products
+  products      Product[]   @relation("StoreToProduct")
+  // A Store can have multiple Sizes for products
+  sizes         Size[]      @relation("StoreToSize")
+  // A Store can have multiple Colors for products
+  colors        Color[]     @relation("StoreToColor")
+  // A Store can have multiple Orders
+  orders        Order[]     @relation("StoreToOrder")
+  // A Store can have multiple Customers
+  customers     Customer[]  @relation("StoreToCustomer")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
