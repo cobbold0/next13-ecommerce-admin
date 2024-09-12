@@ -15,13 +15,16 @@ export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
 ) {
+  const d = await req.json()
   const {
     productIds,
     firstName,
     lastName,
     customerAddress: { line, city, digitalAddress, country },
     customerContact: { phoneNumber1, phoneNumber2, email },
-  } = await req.json();
+  } = d;
+
+  console.log("[CHECKOUT: - REQUEST]", d);
 
   if (!productIds || productIds.length === 0) {
     return new NextResponse("Product ids are required", { status: 400 });
