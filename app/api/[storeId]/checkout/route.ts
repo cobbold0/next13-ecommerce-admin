@@ -72,7 +72,7 @@ export async function POST(
     line || "",
     city || "",
     digitalAddress || "",
-    country || "",
+    country || "Ghana",
   ];
   const addressString = addressComponents
     .filter((value) => value != "")

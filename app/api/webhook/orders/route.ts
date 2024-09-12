@@ -44,19 +44,24 @@ export async function POST(req: Request) {
       case "charge.success": {
         const session = event.data;
         const {
-          firstName, lastName,
-          address: { line = "", city = "", digitalAddress = "", country = "" } = {},
+          firstName,
+          lastName,
+          address: {
+            line = "",
+            city = "",
+            digitalAddress = "",
+            country = "",
+          } = {},
           contact: { phoneNumber1 = "", phoneNumber2 = "", email = "" } = {},
         } = session?.metadata || {};
         // const address = session?.customer?.metadata?.address;
         console.log("[WEBHOOK/ORDER: SUCCESS - SESSION]", session);
-        
 
         const addressComponents = [
           line || "",
           city || "",
           digitalAddress || "",
-          country || "",
+          country || "Ghana",
         ];
         const addressString = addressComponents
           .filter((value) => value != "")
@@ -80,7 +85,7 @@ export async function POST(req: Request) {
 
         // Upsert customer details
         const customerData = {
-          firstName: firstName|| "",
+          firstName: firstName || "",
           lastName: lastName || "",
           email: email || "",
           phone: phoneNumbersString || "",
@@ -91,8 +96,18 @@ export async function POST(req: Request) {
           update: customerData,
           create: {
             ...customerData,
-            store: { connect: {id: order.storeId} }
+            store: { connect: { id: order.storeId } },
           },
+        });
+
+        await prismadb.order.update({
+          where: { id: session.metadata?.orderId },
+          data: {
+            Customer: {
+              connect: { id: upsertCustomer.id },
+            },
+          },
+          include: { orderItems: true },
         });
 
         // Save payment details
