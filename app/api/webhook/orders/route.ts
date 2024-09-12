@@ -93,7 +93,9 @@ export async function POST(req: Request) {
 
         const upsertCustomer = await prismadb.customer.upsert({
           where: { email: customerData.email },
-          update: customerData,
+          update: {
+            ...customerData
+          },
           create: {
             ...customerData,
             store: { connect: { id: order.storeId } },
