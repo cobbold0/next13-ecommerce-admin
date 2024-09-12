@@ -59,12 +59,10 @@ export async function POST(req: Request) {
           .filter((value) => value != "")
           .join(", ");
 
-
         const phoneNumberComponents = [phoneNumber1 || "", phoneNumber2 || ""];
         const phoneNumbersString = phoneNumberComponents
           .filter((value) => value != "")
           .join(", ");
-
 
         // Update the order with payment status and customer details
         const order = await prismadb.order.update({

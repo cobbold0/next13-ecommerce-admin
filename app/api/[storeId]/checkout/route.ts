@@ -21,6 +21,9 @@ export async function POST(
     customerContact: { phoneNumber1, phoneNumber2, email },
   } = await req.json();
 
+  console.log("checkout request", phoneNumber1);
+  
+
   if (!productIds || productIds.length === 0) {
     return new NextResponse("Product ids are required", { status: 400 });
   }

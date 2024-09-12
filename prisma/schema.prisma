@@ -44,7 +44,6 @@ model Customer {
   orders    Order[]
   // A Customer can have multiple PaymentDetails
   payments  PaymentDetail[]
-  OrderItem OrderItem[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   storeId   String
@@ -63,12 +62,9 @@ model OrderItem {
   productId  String
   // An OrderItem represents one Product
   product    Product  @relation(fields: [productId], references: [id])
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
 
   @@index([orderId])
   @@index([productId])
-  @@index([customerId])
 }
 
 model Order {
