@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
+import { checkForProductAmount } from "../../util/utils";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,7 +65,7 @@ export async function POST(
 
   const line_items = products.map((product) => ({
     name: product.name,
-    amount: product.price.toNumber() * 100,
+    amount: checkForProductAmount(product.price, product.discountedPrice),
     quantity: 1,
   }));
 

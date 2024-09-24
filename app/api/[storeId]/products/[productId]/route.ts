@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 
 import prismadb from "@/lib/prismadb";
+import { calculateDiscountPrice } from "@/app/api/util/utils";
 
 export async function GET(
   req: Request,
@@ -14,26 +15,26 @@ export async function GET(
 
     const product = await prismadb.product.findUnique({
       where: {
-        id: params.productId
+        id: params.productId,
       },
       include: {
         images: true,
         category: true,
         size: true,
         color: true,
-      }
+      },
     });
-  
+
     return NextResponse.json(product);
   } catch (error) {
-    console.log('[PRODUCT_GET]', error);
+    console.log("[PRODUCT_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { productId: string, storeId: string } }
+  { params }: { params: { productId: string; storeId: string } }
 ) {
   try {
     const { userId } = auth();
@@ -49,8 +50,8 @@ export async function DELETE(
     const storeByUserId = await prismadb.store.findFirst({
       where: {
         id: params.storeId,
-        userId
-      }
+        userId,
+      },
     });
 
     if (!storeByUserId) {
@@ -59,28 +60,38 @@ export async function DELETE(
 
     const product = await prismadb.product.delete({
       where: {
-        id: params.productId
+        id: params.productId,
       },
     });
-  
+
     return NextResponse.json(product);
   } catch (error) {
-    console.log('[PRODUCT_DELETE]', error);
+    console.log("[PRODUCT_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
-
+}
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { productId: string, storeId: string } }
+  { params }: { params: { productId: string; storeId: string } }
 ) {
   try {
     const { userId } = auth();
 
     const body = await req.json();
 
-    const { name, price, categoryId, images, colorId, sizeId, isFeatured, isArchived } = body;
+    const {
+      name,
+      price,
+      discount,
+      categoryId,
+      images,
+      colorId,
+      sizeId,
+      description,
+      isFeatured,
+      isArchived,
+    } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -117,8 +128,8 @@ export async function PATCH(
     const storeByUserId = await prismadb.store.findFirst({
       where: {
         id: params.storeId,
-        userId
-      }
+        userId,
+      },
     });
 
     if (!storeByUserId) {
@@ -127,11 +138,14 @@ export async function PATCH(
 
     await prismadb.product.update({
       where: {
-        id: params.productId
+        id: params.productId,
       },
       data: {
         name,
         price,
+        discount,
+        discountedPrice: calculateDiscountPrice(price, discount),
+        description,
         categoryId,
         colorId,
         sizeId,
@@ -145,22 +159,20 @@ export async function PATCH(
 
     const product = await prismadb.product.update({
       where: {
-        id: params.productId
+        id: params.productId,
       },
       data: {
         images: {
           createMany: {
-            data: [
-              ...images.map((image: { url: string }) => image),
-            ],
+            data: [...images.map((image: { url: string }) => image)],
           },
         },
       },
-    })
-  
+    });
+
     return NextResponse.json(product);
   } catch (error) {
-    console.log('[PRODUCT_PATCH]', error);
+    console.log("[PRODUCT_PATCH]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-};
+}

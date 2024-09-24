@@ -34,12 +34,12 @@ model PaymentDetail {
 }
 
 model Customer {
-  id        String  @id @default(uuid())
+  id        String          @id @default(uuid())
   firstName String
   lastName  String
-  email     String  @unique
+  email     String          @unique
   phone     String?
-  store     Store   @relation("StoreToCustomer", fields: [storeId], references: [id])
+  store     Store           @relation("StoreToCustomer", fields: [storeId], references: [id])
   // A Customer can have multiple Orders
   orders    Order[]
   // A Customer can have multiple PaymentDetails
@@ -55,13 +55,13 @@ model Customer {
 
 // Intermediary table to represent many-to-many between Orders and Products
 model OrderItem {
-  id         String   @id @default(uuid())
-  orderId    String
+  id        String  @id @default(uuid())
+  orderId   String
   // An OrderItem belongs to one Order
-  order      Order    @relation(fields: [orderId], references: [id])
-  productId  String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
   // An OrderItem represents one Product
-  product    Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
@@ -90,29 +90,32 @@ model Order {
 }
 
 model Product {
-  id         String      @id @default(uuid())
-  storeId    String
+  id              String      @id @default(uuid())
+  storeId         String
   // A Product belongs to one Store
-  store      Store       @relation("StoreToProduct", fields: [storeId], references: [id])
-  categoryId String
+  store           Store       @relation("StoreToProduct", fields: [storeId], references: [id])
+  categoryId      String
   // A Product belongs to one Category
-  category   Category    @relation("CategoryToProduct", fields: [categoryId], references: [id])
-  name       String
-  price      Decimal
-  isFeatured Boolean     @default(false)
-  isArchived Boolean     @default(false)
-  sizeId     String
+  category        Category    @relation("CategoryToProduct", fields: [categoryId], references: [id])
+  name            String
+  price           Decimal
+  discount        Decimal     @default(0.0)
+  discountedPrice Decimal?    @default(0.0)
+  description     String      @default("")
+  isFeatured      Boolean     @default(false)
+  isArchived      Boolean     @default(false)
+  sizeId          String
   // A Product belongs to one Size
-  size       Size        @relation(fields: [sizeId], references: [id])
-  colorId    String
+  size            Size        @relation(fields: [sizeId], references: [id])
+  colorId         String
   // A Product belongs to one Color
-  color      Color       @relation(fields: [colorId], references: [id])
+  color           Color       @relation(fields: [colorId], references: [id])
   // A Product can have multiple Images
-  images     Image[] // Relation to Image model
+  images          Image[] // Relation to Image model
   // A Product can have multiple OrderItems (many-to-many between Orders and Products)
-  orderItems OrderItem[] // Relation to Order model
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  orderItems      OrderItem[] // Relation to Order model
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([storeId])
   @@index([categoryId])
@@ -186,6 +189,7 @@ model Category {
   // A Category is displayed on one Billboard
   billboard   Billboard @relation(fields: [billboardId], references: [id])
   name        String
+  iconUrl     String?
   // A Category can have multiple Products
   products    Product[] @relation("CategoryToProduct")
   createdAt   DateTime  @default(now())

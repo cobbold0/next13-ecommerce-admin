@@ -36,14 +36,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useProductDraft } from "@/hooks/use-product-draft";
 import { usePreventDataLoss } from "@/hooks/use-prevent-data-loss";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
   price: z.coerce.number().min(1),
+  discount: z.coerce.number().min(1).optional(),
   categoryId: z.string().min(1),
   colorId: z.string().min(1),
   sizeId: z.string().min(1),
+  description: z.string().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
 });
@@ -84,18 +87,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     ? {
         ...initialData,
         price: parseFloat(String(initialData?.price)),
+        discount: parseFloat(String(initialData.discount)),
       }
     : draftedProduct
     ? {
         ...draftedProduct,
+        price: parseFloat(String(draftedProduct?.price)),
+        discount: parseFloat(String(draftedProduct.discount)),
       }
     : {
         name: "",
         images: [],
         price: 0,
+        discount: 0,
         categoryId: "",
         colorId: "",
         sizeId: "",
+        description: "",
         isFeatured: false,
         isArchived: false,
       };
@@ -143,9 +151,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const onDiscard = () => {
-    productDraft.onClear()
-    router.back()
-  }
+    productDraft.onClear();
+    router.back();
+  };
 
   const saveDraftProduct = (e: FormEvent) => {
     const data = form.getValues();
@@ -163,6 +171,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between">
           <Heading title={title} description={description} />
+        </div>
+        <div className="flex items-center justify-between gap-5">
           {initialData && (
             <Button
               disabled={loading}
@@ -173,8 +183,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <Trash className="h-4 w-4" />
             </Button>
           )}
-        </div>
-        <div className="flex items-center justify-between">
           {draftedProduct && <Badge variant={"destructive"}>Drafted</Badge>}
         </div>
       </div>
@@ -242,6 +250,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="discount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Discount?</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      disabled={loading}
+                      placeholder="1%"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <FormDescription>
+                    Discount is in percentage. We will calculate the discounted
+                    price automatically
+                  </FormDescription>
                 </FormItem>
               )}
             />
@@ -383,11 +413,35 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      disabled={loading}
+                      placeholder="Talk about the product"
+                      {...field}
+                      className=""
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <Button onClick={onDiscard} type="button" disabled={loading} className="ml-auto bg-red-200 text-red-600 mr-5" variant={"secondary"}>
+          <Button
+            onClick={onDiscard}
+            type="button"
+            disabled={loading}
+            className="ml-auto bg-red-200 text-red-600 mr-5"
+            variant={"secondary"}
+          >
             Discard
           </Button>
-          
+
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}
           </Button>
