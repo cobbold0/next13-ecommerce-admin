@@ -16,6 +16,10 @@ export function calculateDiscountPrice(
     );
   }
 
+  if (discountPercent == 0) {
+    return 0;
+  }
+
   const discountAmount = (originalPrice * discountPercent) / 100;
   return originalPrice - discountAmount;
 }
