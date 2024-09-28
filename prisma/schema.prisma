@@ -68,22 +68,23 @@ model OrderItem {
 }
 
 model Order {
-  id         String         @id @default(uuid())
-  storeId    String
+  id          String         @id @default(uuid())
+  storeId     String
   // An Order belongs to one Store
-  store      Store          @relation("StoreToOrder", fields: [storeId], references: [id])
+  store       Store          @relation("StoreToOrder", fields: [storeId], references: [id])
   // An Order can have multiple OrderItems (many-to-many with Products)
-  orderItems OrderItem[] // Relation to OrderItem model
-  isPaid     Boolean        @default(false)
-  phone      String         @default("")
-  address    String         @default("")
+  orderItems  OrderItem[] // Relation to OrderItem model
+  isPaid      Boolean        @default(false)
+  phone       String         @default("")
+  address     String         @default("")
+  isDelivered Boolean        @default(false)
   // An Order can have one PaymentDetail
-  payment    PaymentDetail?
-  customerId String?
+  payment     PaymentDetail?
+  customerId  String?
   // An Order can belong to one Customer
-  Customer   Customer?      @relation(fields: [customerId], references: [id])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  Customer    Customer?      @relation(fields: [customerId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([storeId])
   @@index([customerId])

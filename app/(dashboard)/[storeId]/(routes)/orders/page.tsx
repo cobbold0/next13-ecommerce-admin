@@ -1,8 +1,6 @@
 import { format } from "date-fns";
-
 import prismadb from "@/lib/prismadb";
 import { formatter } from "@/lib/utils";
-
 import { OrderColumn } from "./components/columns"
 import { OrderClient } from "./components/client";
 
@@ -24,9 +22,12 @@ const OrdersPage = async ({
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      createdAt: "desc",
     }
   });
+
+  console.log("orders", orders);
+  
 
   const formattedOrders: OrderColumn[] = orders.map((item) => ({
     id: item.id,
@@ -37,6 +38,7 @@ const OrdersPage = async ({
       return total + Number(item.product.price)
     }, 0)),
     isPaid: item.isPaid,
+    isDelivered: item.isDelivered,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
   }));
 
