@@ -3,6 +3,8 @@ import prismadb from "@/lib/prismadb";
 import { formatter } from "@/lib/utils";
 import { OrderColumn } from "./components/columns"
 import { OrderClient } from "./components/client";
+import { Overview } from "@/components/overview";
+import OrderOverview from "./components/overview";
 
 
 const OrdersPage = async ({
@@ -39,12 +41,16 @@ const OrdersPage = async ({
     }, 0)),
     isPaid: item.isPaid,
     isDelivered: item.isDelivered,
+    status: item.status,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
   }));
 
   return (
     <div className="flex-col">
       <div className="flex-1 space-y-4 p-8 pt-6">
+        <OrderOverview params={{
+          storeId: params.storeId
+        }}/>
         <OrderClient data={formattedOrders} />
       </div>
     </div>

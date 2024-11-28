@@ -2,7 +2,19 @@
 
 import axios from "axios";
 import { useState } from "react";
-import { Copy, Edit, MoreHorizontal, Package, PackageCheckIcon, Trash } from "lucide-react";
+import {
+  Bike,
+  CheckCheck,
+  CheckCircleIcon,
+  Copy,
+  Edit,
+  MoreHorizontal,
+  Package,
+  PackageCheckIcon,
+  TimerIcon,
+  Trash,
+  TruckIcon,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
 
@@ -15,8 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertModal } from "@/components/modals/alert-modal";
-
 import { OrderColumn } from "./columns";
+import { OrderStatus } from "@prisma/client";
 
 interface CellActionProps {
   data: OrderColumn;
@@ -27,17 +39,19 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const params = useParams();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState("");
+  const orderStatus = data.status;
 
   const onConfirm = async () => {
     try {
       setLoading(true);
-      await axios.delete(`/api/${params.storeId}/orders/${data.id}`);
-      toast.success("Customer deleted.");
+      await axios.patch(`/api/${params.storeId}/orders/${data.id}`, {
+        status: selectedOrderStatus,
+      });
+      toast.success("Order Status Updated");
       router.refresh();
     } catch (error) {
-      toast.error(
-        "Make sure you removed all products using this customer first."
-      );
+      toast.error("Unable to update order status. try again");
     } finally {
       setOpen(false);
       setLoading(false);
@@ -46,10 +60,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
   const onCopy = (id: string) => {
     navigator.clipboard.writeText(id);
-    toast.success("Customer ID copied to clipboard.");
+    toast.success("Order ID copied to clipboard.");
   };
 
-  const onOrderDelivered = (id: string) => {
+  const onOrderStatusChanged = (status: string) => {
+    setSelectedOrderStatus(status);
+    setOpen(true);
   };
 
   return (
@@ -73,26 +89,44 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <Copy className="mr-2 h-4 w-4" /> Copy Id
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() =>
-              router.push(`/${params.storeId}/orders/${data.id}`)
-            }
+            onClick={() => router.push(`/${params.storeId}/orders/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onOrderDelivered(data.id)}>
-            {data.isDelivered ? (
+          <DropdownMenuItem
+            disabled={
+              orderStatus == OrderStatus.DELIVERED ||
+              orderStatus == OrderStatus.ORDER_CANCELED ||
+              !data.isPaid
+            }
+            onClick={() => onOrderStatusChanged(data.id)}
+          >
+            {orderStatus == OrderStatus.ORDER_PLACED ? (
               <>
-                <PackageCheckIcon fill="green" className="mr-2 h-4 w-4" /> Delivered
+                <CheckCircleIcon className="mr-2 h-4 w-4" /> Confirm Order
+              </>
+            ) : orderStatus == OrderStatus.ORDER_CONFIRMED ? (
+              <>
+                <TimerIcon className="mr-2 h-4 w-4" /> Pick Up Scheduled
+              </>
+            ) : orderStatus == OrderStatus.PICKUP_SCHEDULED ? (
+              <>
+                <Bike className="mr-2 h-4 w-4" /> In Transit
+              </>
+            ) : orderStatus == OrderStatus.IN_TRANSIT ? (
+              <>
+                <div className="flex flex-row mr-2">
+                  <Bike className="h-4 w-4" />
+                  <CheckCheck className="h-3 w-3" />
+                </div> Delivered
               </>
             ) : (
-              <>
-                <Package className="mr-2 h-4 w-4" /> Deliver
-              </>
+              <></>
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)} className="hidden">
+          {/* <DropdownMenuItem onClick={() => setOpen(true)} className="hidden">
             <Trash className="mr-2 h-4 w-4" /> Delete
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

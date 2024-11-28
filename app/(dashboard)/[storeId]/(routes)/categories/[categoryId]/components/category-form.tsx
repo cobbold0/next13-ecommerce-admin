@@ -141,19 +141,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
         onConfirm={onDelete}
         loading={loading}
       />
-      <div className="flex items-center justify-between">
-        <Heading title={title} description={description} />
-        {initialData && (
-          <Button
-            disabled={loading}
-            variant="destructive"
-            size="sm"
-            onClick={() => setOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+     
       <Separator />
       <Form {...form}>
         <form

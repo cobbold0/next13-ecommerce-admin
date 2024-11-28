@@ -9,6 +9,44 @@ datasource db {
   relationMode = "prisma"
 }
 
+enum NotificationType {
+  EMAIL
+  ANNOUNCEMENT
+  PROMOTION
+}
+
+enum NotificationPriority {
+  HIGH
+  MEDUIM
+  LOW
+}
+
+enum OrderStatus {
+  DELIVERED
+  IN_TRANSIT
+  PICKUP_SCHEDULED
+  ORDER_CONFIRMED
+  ORDER_CANCELED
+  ORDER_PLACED
+}
+
+model Notification {
+  id             String               @id @default(uuid())
+  title          String
+  message        String
+  type           NotificationType
+  isArchived     Boolean              @default(false)
+  priority       NotificationPriority @default(HIGH)
+  publishingDate DateTime
+  expiringDate   DateTime
+  storeId        String
+  store          Store                @relation("StoreToNotification", fields: [storeId], references: [id])
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([storeId])
+}
+
 model PaymentDetail {
   id                String   @id @default(uuid())
   reference         String
@@ -78,6 +116,7 @@ model Order {
   phone       String         @default("")
   address     String         @default("")
   isDelivered Boolean        @default(false)
+  status      OrderStatus    @default(ORDER_PLACED)
   // An Order can have one PaymentDetail
   payment     PaymentDetail?
   customerId  String?
@@ -201,24 +240,25 @@ model Category {
 }
 
 model Store {
-  id            String      @id @default(uuid())
+  id            String         @id @default(uuid())
   name          String
   userId        String
-  storeFrontUrl String      @default("")
+  storeFrontUrl String         @default("")
   // A Store can have multiple Billboards
-  billboards    Billboard[] @relation("StoreToBillboard")
+  billboards    Billboard[]    @relation("StoreToBillboard")
   // A Store can have multiple Categories
-  categories    Category[]  @relation("StoreToCategory")
+  categories    Category[]     @relation("StoreToCategory")
   // A Store can have multiple Products
-  products      Product[]   @relation("StoreToProduct")
+  products      Product[]      @relation("StoreToProduct")
   // A Store can have multiple Sizes for products
-  sizes         Size[]      @relation("StoreToSize")
+  sizes         Size[]         @relation("StoreToSize")
   // A Store can have multiple Colors for products
-  colors        Color[]     @relation("StoreToColor")
+  colors        Color[]        @relation("StoreToColor")
   // A Store can have multiple Orders
-  orders        Order[]     @relation("StoreToOrder")
+  orders        Order[]        @relation("StoreToOrder")
   // A Store can have multiple Customers
-  customers     Customer[]  @relation("StoreToCustomer")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  customers     Customer[]     @relation("StoreToCustomer")
+  Notification  Notification[] @relation("StoreToNotification")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
