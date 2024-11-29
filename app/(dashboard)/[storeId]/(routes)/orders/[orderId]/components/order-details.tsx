@@ -66,9 +66,10 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
   );
   const paymentNumber = "3284239848943484832";
   const customerName = fullOrder.customer.fullname
-  const paymentFees = formatter.format(fullOrder.payment?.fees || 0);
+  const paymentFees = formatter.format((fullOrder.payment.fees/100));
   const orderSubtotal = formatter.format(calcOrderSubtotal(fullOrder.products));
-  const TAP = (fullOrder.payment?.amount || 0) + (fullOrder.payment?.fees || 0);
+  const TAP = (fullOrder.payment.amount/100) + (fullOrder.payment.fees/100);
+
   console.log("amount", fullOrder.payment?.amount);
   console.log("fee", fullOrder.payment?.fees);
   console.log("tpa", TAP);
