@@ -28,7 +28,7 @@ import { File } from "lucide-react";
 import OrderProductItem from "./order-product-item";
 import {
   calcOrderSubtotal,
-  calcTotalDiscount,
+  calcTotalDiscountPrice,
   cn,
   formatter,
 } from "@/lib/utils";
@@ -65,18 +65,20 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
     <File className="h-4 w-4" />
   );
   const paymentNumber = "3284239848943484832";
-  const customerName = fullOrder.customer.fullname
-  const paymentFees = formatter.format((fullOrder.payment.fees/100));
+  const customerName = fullOrder.customer.fullname;
+  const paymentFees = formatter.format(fullOrder.payment.fees / 100);
   const orderSubtotal = formatter.format(calcOrderSubtotal(fullOrder.products));
-  const TAP = (fullOrder.payment.amount/100) + (fullOrder.payment.fees/100);
+  const TAP = fullOrder.payment.amount / 100 + fullOrder.payment.fees / 100;
 
   console.log("amount", fullOrder.payment?.amount);
   console.log("fee", fullOrder.payment?.fees);
   console.log("tpa", TAP);
 
-  const totalDiscount = 0;
+  const totalDiscount = formatter.format(
+    calcTotalDiscountPrice(fullOrder.products)
+  );
 
-  const totalAmountPaid = formatter.format(TAP)
+  const totalAmountPaid = formatter.format(TAP);
 
   const orderStatus = fullOrder.status;
   const subTitle = () => {
@@ -131,7 +133,11 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
         />
         <Button
           onClick={() => setOpen(true)}
-          disabled={loading || orderStatus == OrderStatus.ORDER_CANCELED || orderStatus == OrderStatus.DELIVERED}
+          disabled={
+            loading ||
+            orderStatus == OrderStatus.ORDER_CANCELED ||
+            orderStatus == OrderStatus.DELIVERED
+          }
           variant="secondary"
           size="sm"
           className="cursor-pointer bg-blue-500 text-white hover:text-black"
@@ -196,47 +202,22 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
         </CardHeader>
         <CardContent className="p-6 text-sm">
           <div className="grid gap-3">
-            <div className="font-semibold">Order Details</div>
+            <div className="font-semibold">Products</div>
             <ul className="grid gap-3">
               {fullOrder.products.map((item, index) => {
                 return <OrderProductItem key={index} product={item} />;
               })}
-            </ul>
-            <Separator className="my-2" />
-            <ul className="grid gap-3">
-              <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>{orderSubtotal}</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">fees</span>
-                <span>{paymentFees}</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">Discount Price</span>
-                <span>{totalDiscount}</span>
-              </li>
-              <li className="flex items-center justify-between font-semibold">
-                <span className="text-muted-foreground">Total Amount Paid</span>
-                <span>{totalAmountPaid}</span>
-              </li>
             </ul>
           </div>
           <Separator className="my-4" />
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-3">
               <div className="font-semibold">Shipping Information</div>
-              <address className="grid gap-0.5 not-italic text-muted-foreground">
+              <address className="grid gap-3 not-italic text-muted-foreground">
                 <span>{customerName}</span>
                 <span>{fullOrder.address}</span>
               </address>
             </div>
-            {/* <div className="grid auto-rows-max gap-3">
-              <div className="font-semibold">Billing Information</div>
-              <div className="text-muted-foreground">
-                Same as shipping address
-              </div>
-            </div> */}
           </div>
           <Separator className="my-4" />
           <div className="grid gap-3">
@@ -271,6 +252,32 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
                 </dt>
                 <dd>{paymentNumber}</dd>
               </div>
+            </dl>
+          </div>
+          <Separator className="my-4" />
+          <div className="grid gap-3">
+            <div className="font-semibold">Cost</div>
+            <dl className="grid gap-3">
+              <ul className="grid gap-3">
+                <li className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{orderSubtotal}</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-muted-foreground">fees</span>
+                  <span>{paymentFees}</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Discount Price</span>
+                  <span>{totalDiscount}</span>
+                </li>
+                <li className="flex items-center justify-between font-semibold bg-muted/50 p-4">
+                  <span className="text-foreground">
+                    Total Amount Paid
+                  </span>
+                  <span>{totalAmountPaid}</span>
+                </li>
+              </ul>
             </dl>
           </div>
         </CardContent>

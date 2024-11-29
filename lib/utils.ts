@@ -36,11 +36,11 @@ export const calcOrderSubtotal = (order: OrderDetailsProduct[]): number => {
   return total;
 };
 
-export const calcTotalDiscount = (order: OrderDetailsProduct[]): number => {
+export const calcTotalDiscountPrice = (order: OrderDetailsProduct[]): number => {
   let total = 0;
   for (let index = 0; index < order.length; index++) {
     const element = order[index];
-    total = total + getValidDiscountPrice(element.discountedPrice);
+    total = total + getProductPrice(element.price, element.discountedPrice);
   }
   return total;
 };
