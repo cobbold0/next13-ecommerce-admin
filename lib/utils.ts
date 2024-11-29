@@ -1,5 +1,4 @@
-import { FullProduct } from "@/app/(dashboard)/[storeId]/(routes)/orders/[orderId]/components/order-product-item";
-import { OrderItem } from "@prisma/client";
+import { OrderDetailsProduct } from "@/types/OrderDetails";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -28,23 +27,20 @@ export const getProductPrice = (
   return originalPrice;
 };
 
-export const calcOrderSubtotal = (order: FullProduct[]): number => {
+export const calcOrderSubtotal = (order: OrderDetailsProduct[]): number => {
   let total = 0;
   for (let index = 0; index < order.length; index++) {
     const element = order[index];
-    total = total + parseInt(element.product.price.toString());
+    total = total + element.price;
   }
   return total;
 };
 
-export const calcTotalDiscount = (order: FullProduct[]): number => {
+export const calcTotalDiscount = (order: OrderDetailsProduct[]): number => {
   let total = 0;
   for (let index = 0; index < order.length; index++) {
     const element = order[index];
-    if (element.product.discountedPrice == null) {
-      continue;
-    }
-    total = total + parseInt(element.product.discountedPrice.toString());
+    total = total + element.discount;
   }
   return total;
 };
