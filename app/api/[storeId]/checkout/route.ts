@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import { checkForProductAmount } from "../../util/utils";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,6 +76,7 @@ export async function POST(
     digitalAddress || "",
     country || "",
   ];
+
   const addressString = addressComponents
     .filter((value) => value != "")
     .join(", ");
@@ -108,10 +110,7 @@ export async function POST(
       },
       body: JSON.stringify({
         email,
-        amount: line_items.reduce(
-          (total, item) => total + item.amount * item.quantity,
-          0
-        ),
+        amount: line_items.reduce((total, item) => total.plus(item.amount.times(item.quantity)), new Decimal(0)).toNumber(),
         callback_url: `${storeFrontUrl.origin}/cart`,
         metadata: {
           orderId: order.id,

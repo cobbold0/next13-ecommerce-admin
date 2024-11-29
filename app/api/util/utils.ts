@@ -26,10 +26,7 @@ export function calculateDiscountPrice(
 
 export const checkForProductAmount = (
   originalPrice: Decimal,
-  discountedPrice: Decimal | null
-): any => {
-  if (discountedPrice != null && discountedPrice.gt(0)) {
-    return discountedPrice;
-  }
-  return originalPrice;
+  discountedPrice?: Decimal | null
+): Decimal => {
+  return discountedPrice && discountedPrice.greaterThan(0) ? discountedPrice : originalPrice
 };
