@@ -40,7 +40,11 @@ export const calcTotalDiscount = (order: OrderDetailsProduct[]): number => {
   let total = 0;
   for (let index = 0; index < order.length; index++) {
     const element = order[index];
-    total = total + element.discount;
+    total = total + getValidDiscountPrice(element.discountedPrice);
   }
   return total;
 };
+
+const getValidDiscountPrice = (price?: number | null) => {
+  return price || 0.0
+}

@@ -212,8 +212,8 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
                 <span>{paymentFees}</span>
               </li>
               <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">discount</span>
-                <span>-{totalDiscount}</span>
+                <span className="text-muted-foreground">Discount Price</span>
+                <span>{totalDiscount}</span>
               </li>
               <li className="flex items-center justify-between font-semibold">
                 <span className="text-muted-foreground">Total</span>

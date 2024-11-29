@@ -17,7 +17,7 @@ export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
 ) {
-  const d = await req.json()
+  const d = await req.json();
   const {
     productIds,
     firstName,
@@ -99,38 +99,43 @@ export async function POST(
     },
   });
 
-  // Paystack API request to create a payment link
-  const paystackResponse = await fetch(
-    "https://api.paystack.co/transaction/initialize",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        amount: line_items.reduce((total, item) => total.plus(item.amount.times(item.quantity)), new Decimal(0)).toNumber(),
-        callback_url: `${storeFrontUrl.origin}/cart`,
-        metadata: {
-          orderId: order.id,
-          firstName: firstName || "",
-          lastName: lastName || "",
-          address: {
-            line: line || "",
-            city: city || "",
-            digitalAddress: digitalAddress || "",
-            country: country || "",
-          },
-          contact: {
-            phoneNumber1: phoneNumber1 || "",
-            phoneNumber2: phoneNumber2 || "",
-            email: email || "",
-          },
+  const requestBody = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      amount: line_items
+        .reduce(
+          (total, item) => total.plus(item.amount.times(item.quantity)),
+          new Decimal(0)
+        )
+        .toNumber() * 100,
+      callback_url: `${storeFrontUrl.origin}/cart`,
+      metadata: {
+        orderId: order.id,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        address: {
+          line: line || "",
+          city: city || "",
+          digitalAddress: digitalAddress || "",
+          country: country || "",
         },
-      }),
-    }
-  );
+        contact: {
+          phoneNumber1: phoneNumber1 || "",
+          phoneNumber2: phoneNumber2 || "",
+          email: email || "",
+        },
+      },
+    }),
+  };
+  console.log("PAYSTACK PAYMENT REQUEST BODY", JSON.stringify(requestBody));
+
+  // Paystack API request to create a payment link
+  const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", requestBody);
 
   if (!paystackResponse.ok) {
     const errorMessage = await paystackResponse.text();
@@ -140,6 +145,8 @@ export async function POST(
   }
 
   const paystackData = await paystackResponse.json();
+
+  console.log("PAYSTACK PAYMENT RESPONSE", paystackData);
 
   return NextResponse.json(
     { url: paystackData.data.authorization_url },
