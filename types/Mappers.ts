@@ -47,8 +47,7 @@ export class Mappers {
             updatedAt: format(order.createdAt, "MMMM do, yyyy"),
             customer: {
                 id: order.Customer?.id || "",
-                fullname:
-                    order.Customer?.firstName || "" + order.Customer?.lastName || "",
+                fullname: (order.Customer?.firstName || "") + (order.Customer?.lastName || ""),
                 email: order.Customer?.email || "",
                 phone: order.Customer?.phone || "",
             },
