@@ -112,7 +112,7 @@ export async function POST(
           (total, item) => total.plus(item.amount.times(item.quantity)),
           new Decimal(0)
         )
-        .toNumber(),
+        .toNumber() * 100,
       callback_url: `${storeFrontUrl.origin}/cart`,
       metadata: {
         orderId: order.id,
