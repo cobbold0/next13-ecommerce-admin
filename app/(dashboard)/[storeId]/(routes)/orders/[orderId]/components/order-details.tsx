@@ -74,7 +74,7 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
   console.log("fee", fullOrder.payment?.fees);
   console.log("tpa", TAP);
 
-  const totalDiscount = formatter.format(calcTotalDiscount(fullOrder.products));
+  const totalDiscount = 0;
 
   const totalAmountPaid = formatter.format(TAP)
 
@@ -217,7 +217,7 @@ export default function OrderDetails({ fullOrder }: OrderDetailsProps) {
                 <span>{totalDiscount}</span>
               </li>
               <li className="flex items-center justify-between font-semibold">
-                <span className="text-muted-foreground">Total</span>
+                <span className="text-muted-foreground">Total Amount Paid</span>
                 <span>{totalAmountPaid}</span>
               </li>
             </ul>
