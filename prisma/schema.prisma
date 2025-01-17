@@ -30,6 +30,13 @@ enum OrderStatus {
   ORDER_PLACED
 }
 
+enum KycStatus {
+  ACCEPTED
+  DECLINED
+  UNDER_REVIEW
+  VERIFIED
+}
+
 model Notification {
   id             String               @id @default(uuid())
   title          String
@@ -239,11 +246,30 @@ model Category {
   @@index([billboardId])
 }
 
+model Attribute {
+  id      String  @id @default(uuid())
+  label   String
+  value   String
+  url     String?
+  storeId String
+  store   Store   @relation("StoreToAttribute", fields: [storeId], references: [id])
+
+  @@index([storeId])
+}
+
 model Store {
   id            String         @id @default(uuid())
-  name          String
   userId        String
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  category      String?
+  verified      Boolean @default(false)
   storeFrontUrl String         @default("")
+  Kyc           Kyc?
+  // A Store can have multiple Categories
+  attribute     Attribute[]    @relation("StoreToAttribute")
   // A Store can have multiple Billboards
   billboards    Billboard[]    @relation("StoreToBillboard")
   // A Store can have multiple Categories
@@ -261,4 +287,41 @@ model Store {
   Notification  Notification[] @relation("StoreToNotification")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+model Kyc {
+  id                    String    @id @default(uuid())
+  storeId               String    @unique
+  store                 Store     @relation(fields: [storeId], references: [id])
+  selfieImage           String
+  documentType          String
+  identityDocumentFront String
+  identityDocumentBack  String?
+  document_id           String
+  surname               String
+  other_names           String
+  dateOfBirth           String
+  sex                   String
+  nationality           String
+  dateIssued            String
+  dateOfExpire          String
+  status                KycStatus @default(ACCEPTED)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model AttributeForm {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FormComponent {
+  id          String   @id @default(uuid())
+  label       String
+  inputType   String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
